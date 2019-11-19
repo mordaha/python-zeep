@@ -70,7 +70,10 @@ class Settings(object):
         for key, value in current.items():
             default = getattr(self, key)
             if value == default:
-                delattr(self._tls, key)
+                try:
+                    delattr(self._tls, key)
+                except AttributeError:
+                    pass
             else:
                 setattr(self._tls, key, value)
 
