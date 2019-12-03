@@ -72,7 +72,9 @@ class ArrayValue(list):
 class CompoundValue(object):
     """Represents a data object for a specific xsd:complexType."""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(*args_param, **kwargs):
+        (self, *args) = args_param # to avoid exception when 'self' in kwargs 
+
         values = OrderedDict()
 
         # Can be done after unpickle
