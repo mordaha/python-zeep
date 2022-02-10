@@ -91,6 +91,19 @@ def test_force_https():
         expected_url = "https://example.com/stockquote"
         assert binding_options["address"] == expected_url
 
+    with open("tests/wsdl_files/http.wsdl") as fh:
+        response = fh.read()
+
+    with requests_mock.mock() as m:
+        url = "https://tests.python-zeep.org/wsdl"
+        m.get(url, text=response, status_code=200)
+        client_obj = client.Client(url)
+        binding_options = client_obj.service._binding_options
+        assert binding_options["address"].startswith("https")
+
+        expected_url = "https://example.com/stockquote"
+        assert binding_options["address"] == expected_url
+
 
 @pytest.mark.requests
 def test_create_service():
@@ -129,12 +142,21 @@ def test_create_message():
     data = client_obj.create_message(
         client_obj.service, "GetLastTradePrice", tickerSymbol="ZEEP"
     )
-    assert data
+    assert data is not None
 
 
-def test_load_wsdl_with_file_prefix():
+@pytest.mark.skipif(os.name == "nt", reason="test valid for unix platforms only")
+def test_load_wsdl_with_file_prefix_unix():
     cwd = os.path.dirname(__file__)
     client.Client("file://" + os.path.join(cwd, "wsdl_files/soap.wsdl"))
+
+
+@pytest.mark.skipif(os.name != "nt", reason="test valid for windows platform only")
+def test_load_wsdl_with_file_prefix():
+    cwd = os.path.dirname(__file__)
+    # RFC 8089 REQUIRES that separators in file uris use forward slashes
+    uri = ("file:///" + os.path.join(cwd, "wsdl_files/soap.wsdl")).replace("\\", "/")
+    client.Client(uri)
 
 
 @pytest.mark.requests
